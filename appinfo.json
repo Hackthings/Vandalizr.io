@@ -1,0 +1,26 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        ""
+    ],
+    "companyName": "Orviwan",
+    "longName": "Vandalizr.io",
+    "projectType": "native",
+    "resources": {
+        "media": [
+            {
+                "characterRegex": "[0-9:]",
+                "file": "fonts/monkey.ttf",
+                "name": "FONT_MONKEY_38",
+                "type": "font"
+            }
+        ]
+    },
+    "shortName": "Vandalizr.io",
+    "uuid": "4061ab50-93ec-4f3a-85f2-4bb1ca0ef36c",
+    "versionCode": 1,
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": false
+    }
+}
