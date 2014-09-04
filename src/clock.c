@@ -33,48 +33,48 @@ static void destroy_ui(void) {
 static char time_text[] = "00:00:00";
 
 static void handle_tick(struct tm *tick_time, TimeUnits units_changed) {
-	if(clock_is_24h_style()) {
-		strftime(time_text, sizeof(time_text), "%H:%M:%S", tick_time);
-	}
-	else {
-		strftime(time_text, sizeof(time_text), "%I:%M:%S", tick_time);	
-		if (time_text[0] == '0') {
-        	memmove(&time_text[0], &time_text[1], sizeof(time_text) - 1); //remove leading zero
+    if(clock_is_24h_style()) {
+        strftime(time_text, sizeof(time_text), "%H:%M:%S", tick_time);
+    }
+    else {
+        strftime(time_text, sizeof(time_text), "%I:%M:%S", tick_time);	
+        if (time_text[0] == '0') {
+            memmove(&time_text[0], &time_text[1], sizeof(time_text) - 1); //remove leading zero
         }
-	}    
-	text_layer_set_text(s_time_layer, time_text);
+    }    
+    text_layer_set_text(s_time_layer, time_text);
 }
 
-
-
-void select_single_click_handler(ClickRecognizerRef recognizer, void *context) {
-	show_player_list();
+void select_click_handler(ClickRecognizerRef recognizer, void *context) {
+    show_player_list();
 }
 
 void select_config_provider(void *context) {
-    window_single_click_subscribe(BUTTON_ID_SELECT, select_single_click_handler);
+    window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
 }
 
 static void handle_window_unload(Window* window) {
-  destroy_ui();
+    destroy_ui();
 }
 
 void show_clock(void) {
-  initialise_ui();
-  window_set_window_handlers(s_window, (WindowHandlers) {
-    .unload = handle_window_unload,
-  });
-  window_stack_push(s_window, true);
-	
-  window_set_click_config_provider(s_window, select_config_provider);
-	
-  time_t now = time(NULL);
-  struct tm *tick_time = localtime(&now);  
+    initialise_ui();
+    window_set_window_handlers(s_window, (WindowHandlers) {
+        .unload = handle_window_unload,
+    });
+    window_stack_push(s_window, true);
 
-  handle_tick(tick_time, SECOND_UNIT);
-  tick_timer_service_subscribe(SECOND_UNIT, handle_tick);
+	//Somebody set us up the CLOCK
+    time_t now = time(NULL);
+    struct tm *tick_time = localtime(&now);  
+
+    handle_tick(tick_time, SECOND_UNIT);
+    tick_timer_service_subscribe(SECOND_UNIT, handle_tick);
+	
+	//Setup the SELECT button
+	window_set_click_config_provider(s_window, select_config_provider);
 }
 
 void hide_clock(void) {
-  window_stack_remove(s_window, true);
+    window_stack_remove(s_window, true);
 }

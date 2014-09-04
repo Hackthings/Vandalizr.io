@@ -1,5 +1,12 @@
 {
-    "appKeys": {},
+    "appKeys": {
+        "endpoint": 0,
+        "error": 5,
+        "id": 3,
+        "index": 1,
+        "name": 2,
+        "spare": 4
+    },
     "capabilities": [
         ""
     ],
