@@ -3,6 +3,7 @@
 #include "data.h"
 #include "appmessage.h"
 #include "attack_list.h"
+#include "attack.h"
 	
 // BEGIN AUTO-GENERATED UI CODE; DO NOT MODIFY
 static Window *s_window;
@@ -64,7 +65,8 @@ void al_menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuIndex
 
 // Here we capture when a user selects a menu item
 void al_menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
-
+	gamedata->attack_id = (int)cell_index->row;	
+	show_attack();
 }
 
 
@@ -85,10 +87,10 @@ void show_attack_list(void) {
 		.select_click = al_menu_select_callback,
 	});
 	
-	APP_LOG(APP_LOG_LEVEL_DEBUG, "al - appmessage_init");
+	//APP_LOG(APP_LOG_LEVEL_DEBUG, "al - appmessage_init");
 	al_appmessage_init();
 	
-	APP_LOG(APP_LOG_LEVEL_DEBUG, "al - refresh_list");
+	//APP_LOG(APP_LOG_LEVEL_DEBUG, "al - refresh_list");
 	al_refresh_list(ENDPOINT_ATTACKS);
 	
 	window_set_window_handlers(s_window, (WindowHandlers) {
@@ -107,17 +109,12 @@ void hide_attack_list(void) {
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
 
 static void al_in_received_handler(DictionaryIterator *iter, void *context) {
-	APP_LOG(APP_LOG_LEVEL_DEBUG, "al - al_in_received_handler");
+	//APP_LOG(APP_LOG_LEVEL_DEBUG, "al - al_in_received_handler");
 	Tuple *index_tuple = dict_find(iter, KEY_INDEX);
 	Tuple *name_tuple = dict_find(iter, KEY_NAME);
 	Tuple *id_tuple = dict_find(iter, KEY_ID);
 	Tuple *spare_tuple = dict_find(iter, KEY_SPARE);
 	Tuple *error_tuple = dict_find(iter, KEY_ERROR);
-	
-	if(error_tuple) {
-		APP_LOG(APP_LOG_LEVEL_DEBUG, "al - al_in_received_handler: %s", error_tuple->value->cstring);	
-	}
-	
 
 	if (index_tuple && name_tuple && id_tuple) {
 		MenuItem menuitem;
@@ -127,7 +124,7 @@ static void al_in_received_handler(DictionaryIterator *iter, void *context) {
 		al_menuitems[menuitem.index] = menuitem;
 		al_num_menuitems++;
 		menu_layer_reload_data_and_mark_dirty(s_attack_list);
-		APP_LOG(APP_LOG_LEVEL_DEBUG, "received menuitem [%d] %s - %d", menuitem.index, menuitem.name, menuitem.id);
+		//APP_LOG(APP_LOG_LEVEL_DEBUG, "received menuitem [%d] %s - %d", menuitem.index, menuitem.name, menuitem.id);
 	}
 	else if (name_tuple && !id_tuple) {
 		strncpy(al_error, name_tuple->value->cstring, sizeof(al_error));

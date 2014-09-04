@@ -5,8 +5,6 @@
 #include "player_list.h"
 #include "attack_list.h"
 
-	
-
 // BEGIN AUTO-GENERATED UI CODE; DO NOT MODIFY
 static Window *s_window;
 static MenuLayer *s_player_list;
@@ -91,10 +89,10 @@ void show_player_list(void) {
 		.select_click = pl_menu_select_callback,
 	});
 	
-	APP_LOG(APP_LOG_LEVEL_DEBUG, "pl - appmessage_init");
+	//APP_LOG(APP_LOG_LEVEL_DEBUG, "pl - appmessage_init");
 	pl_appmessage_init();
 	
-	APP_LOG(APP_LOG_LEVEL_DEBUG, "pl - refresh_list");
+	//APP_LOG(APP_LOG_LEVEL_DEBUG, "pl - refresh_list");
 	pl_refresh_list(ENDPOINT_PLAYERS);
 
 	window_set_window_handlers(s_window, (WindowHandlers) {
@@ -110,7 +108,8 @@ void hide_player_list(void) {
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
 
 static void pl_in_received_handler(DictionaryIterator *iter, void *context) {
-	APP_LOG(APP_LOG_LEVEL_DEBUG, "pl - pl_in_received_handler");
+	//APP_LOG(APP_LOG_LEVEL_DEBUG, "pl - pl_in_received_handler");
+
 	Tuple *index_tuple = dict_find(iter, KEY_INDEX);
 	Tuple *name_tuple = dict_find(iter, KEY_NAME);
 	Tuple *id_tuple = dict_find(iter, KEY_ID);
@@ -125,7 +124,7 @@ static void pl_in_received_handler(DictionaryIterator *iter, void *context) {
 		pl_menuitems[menuitem.index] = menuitem;
 		pl_num_menuitems++;
 		menu_layer_reload_data_and_mark_dirty(s_player_list);
-		APP_LOG(APP_LOG_LEVEL_DEBUG, "received menuitem [%d] %s - %d", menuitem.index, menuitem.name, menuitem.id);
+		//APP_LOG(APP_LOG_LEVEL_DEBUG, "received menuitem [%d] %s - %d", menuitem.index, menuitem.name, menuitem.id);
 	}
 	else if (name_tuple && !id_tuple) {
 		strncpy(pl_error, name_tuple->value->cstring, sizeof(pl_error));
@@ -142,16 +141,9 @@ static void pl_refresh_list(uint16_t endpoint) {
 	menu_layer_reload_data_and_mark_dirty(s_player_list);
 	request_data(endpoint);
 }
-
 	
 static void pl_appmessage_init(void) {
 	app_message_deregister_callbacks();
 	app_message_register_inbox_received(pl_in_received_handler);
 	appmessage_init();
 }
-
-
-
-
-
-
