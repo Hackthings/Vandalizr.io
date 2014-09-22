@@ -1,22 +1,30 @@
-//Based largely on Pebble Hacker News by Neal
+function playerUsername() {
+	//TODO: Config setting
+	return 'Player'+Pebble.getAccountToken();
+}
+
+//appMessageQueue from Neal
+//https://github.com/Neal/Ultra/blob/master/src/js/src/appmessagequeue.js
+
 var items = {};
 
 var ENDPOINTS = {
 	PLAYERS: 0,
 	ATTACKS: 1,
-	TBC1: 2,
-	TBC2: 3
+	PLAYERCREATE: 2,
+	PLAYERDELETE: 3
 };
 
 var BASE_URL = 'http://www.mirz.com/vandalizr.io/?method=';
 
 var API_URLS = {
-	[ENDPOINTS.PLAYERS]: BASE_URL + 'getPlayers',
-	[ENDPOINTS.ATTACKS]: BASE_URL + 'getAttacks',
-	[ENDPOINTS.TBC1]: BASE_URL + 'tbc1',
-	[ENDPOINTS.TBC2]: BASE_URL + 'tbc2'
+	[ENDPOINTS.PLAYERS]: BASE_URL + 'playerList',
+	[ENDPOINTS.ATTACKS]: BASE_URL + 'attackList',
+	[ENDPOINTS.PLAYERCREATE]: BASE_URL + 'playerCreate',
+	[ENDPOINTS.PLAYERDELETE]: BASE_URL + 'playerDelete'
 };
 
+var TRANSFER_IN_PROGRESS = false;
 
 var appMessageQueue = {
 	queue: [],
@@ -62,7 +70,8 @@ var appMessageQueue = {
 
 function getItems(endpoint) {
 	var xhr = new XMLHttpRequest();
-	xhr.open('GET', API_URLS[endpoint], true);
+	console.log('Endpoint: ' + API_URLS[endpoint] + '&id=' + Pebble.getAccountToken() + '&username=' + playerUsername());
+	xhr.open('GET', API_URLS[endpoint] + '&id=' + Pebble.getAccountToken() + '&username=' + playerUsername(), true);
 	xhr.timeout = 20000;
 	xhr.onload = function(e) {
 		if (xhr.readyState == 4) {
@@ -102,10 +111,111 @@ Pebble.addEventListener('ready', function(e) {
 });
 
 Pebble.addEventListener('appmessage', function(e) {
-	//console.log('AppMessage received from Pebble: ' + JSON.stringify(e.payload));
+	console.log('AppMessage received from Pebble: ' + JSON.stringify(e.payload));
 	if (typeof(e.payload.endpoint) != 'undefined') {
 		getItems(e.payload.endpoint);
+		return;
 	} else {
 		appMessageQueue = [];
 	}
+	
+	if ('NETIMAGE_URL' in e.payload) {
+		if (TRANSFER_IN_PROGRESS == false) {
+			TRANSFER_IN_PROGRESS = true;
+			downloadBinaryResource(e.payload['NETIMAGE_URL'], function(bytes) {
+				transferImageBytes(bytes, e.payload['NETIMAGE_CHUNK_SIZE'],
+					function() { console.log("Done!"); TRANSFER_IN_PROGRESS = false; },
+					function(e) { console.log("Failed! " + JSON.stringify(e)); TRANSFER_IN_PROGRESS = false; }
+				);
+			});
+		}
+		else {
+			console.log("Ignoring request to download " + e.payload['NETIMAGE_URL'] + " because another download is in progress.");
+		}
+	}
 });
+
+
+
+// Pebble Faces from Sarfata
+// https://github.com/pebble-hacks/pebble-faces
+
+function downloadBinaryResource(imageURL, callback, errorCallback) {
+    var req = new XMLHttpRequest();
+    req.open("GET", imageURL,true);
+    req.responseType = "arraybuffer";
+    req.onload = function(e) {
+        console.log("loaded");
+        var buf = req.response;
+        if(req.status == 200 && buf) {
+            var byteArray = new Uint8Array(buf);
+            var arr = [];
+            for(var i=0; i<byteArray.byteLength; i++) {
+                arr.push(byteArray[i]);
+            }
+
+            console.log("Received image with " + byteArray.length + " bytes.");
+            callback(arr);
+        }
+        else {
+          errorCallback("Request status is " + req.status);
+        }
+    }
+    req.onerror = function(e) {
+      errorCallback(e);
+    }
+    req.send(null);
+}
+
+function transferImageBytes(bytes, chunkSize, successCb, failureCb) {
+  var retries = 0;
+
+  success = function() {
+    console.log("Success cb=" + successCb);
+    if (successCb != undefined) {
+      successCb();
+    }
+  };
+  failure = function(e) {
+    console.log("Failure cb=" + failureCb);
+    if (failureCb != undefined) {
+      failureCb(e);
+    }
+  };
+
+  // This function sends chunks of data.
+  sendChunk = function(start) {
+    var txbuf = bytes.slice(start, start + chunkSize);
+    console.log("Sending " + txbuf.length + " bytes - starting at offset " + start);
+    Pebble.sendAppMessage({ "NETIMAGE_DATA": txbuf },
+      function(e) {
+        // If there is more data to send - send it.
+        if (bytes.length > start + chunkSize) {
+          sendChunk(start + chunkSize);
+        }
+        // Otherwise we are done sending. Send closing message.
+        else {
+          Pebble.sendAppMessage({"NETIMAGE_END": "done" }, success, failure);
+        }
+      },
+      // Failed to send message - Retry a few times.
+      function (e) {
+        if (retries++ < 3) {
+          console.log("Got a nack for chunk #" + start + " - Retry...");
+          sendChunk(start);
+        }
+        else {
+          failure(e);
+        }
+      }
+    );
+  };
+
+  // Let the pebble app know how much data we want to send.
+  Pebble.sendAppMessage({"NETIMAGE_BEGIN": bytes.length },
+    function (e) {
+      // success - start sending
+      sendChunk(0);
+    }, failure);
+
+}

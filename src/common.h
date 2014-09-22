@@ -2,8 +2,8 @@
 
 #define ENDPOINT_PLAYERS 0
 #define ENDPOINT_ATTACKS 1
-#define ENDPOINT_TBC1 2
-#define ENDPOINT_TBC2 3
+#define ENDPOINT_PLAYERCREATE 2
+#define ENDPOINT_PLAYERDELETE 3
 
 typedef struct {
 	int index;

@@ -33,7 +33,7 @@ void appmessage_init(void) {
 
 
 void request_data(uint16_t endpoint) {
-	//APP_LOG(APP_LOG_LEVEL_DEBUG, "request_data: %u", endpoint);	
+	APP_LOG(APP_LOG_LEVEL_DEBUG, "request_data: %u", endpoint);	
 	Tuplet endpoint_tuple = TupletInteger(KEY_ENDPOINT, endpoint);
 
 	DictionaryIterator *iter;

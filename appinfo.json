@@ -1,5 +1,10 @@
 {
     "appKeys": {
+        "NETIMAGE_BEGIN": 1768777473,
+        "NETIMAGE_CHUNK_SIZE": 1768777475,
+        "NETIMAGE_DATA": 1768777472,
+        "NETIMAGE_END": 1768777474,
+        "NETIMAGE_URL": 1768777476,
         "endpoint": 0,
         "error": 5,
         "id": 3,
@@ -15,6 +20,41 @@
     "projectType": "native",
     "resources": {
         "media": [
+            {
+                "file": "images/tiny-penis.png",
+                "name": "IMAGE_ATTACK_8",
+                "type": "png"
+            },
+            {
+                "file": "images/success-kid.png",
+                "name": "IMAGE_ATTACK_7",
+                "type": "png"
+            },
+            {
+                "file": "images/my-little-pony.png",
+                "name": "IMAGE_ATTACK_6",
+                "type": "png"
+            },
+            {
+                "file": "images/one-direction.png",
+                "name": "IMAGE_ATTACK_5",
+                "type": "png"
+            },
+            {
+                "file": "images/rickroll.png",
+                "name": "IMAGE_ATTACK_4",
+                "type": "png"
+            },
+            {
+                "file": "images/cracked-screen.png",
+                "name": "IMAGE_ATTACK_2",
+                "type": "png"
+            },
+            {
+                "file": "images/i-love-kittens.png",
+                "name": "IMAGE_ATTACK_1",
+                "type": "png"
+            },
             {
                 "characterRegex": "[0-9:]",
                 "file": "fonts/monkey.ttf",
