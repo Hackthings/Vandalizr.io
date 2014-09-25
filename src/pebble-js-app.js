@@ -1,6 +1,6 @@
 function playerUsername() {
 	//TODO: Config setting
-	return 'Player'+Pebble.getAccountToken();
+	return '';
 }
 
 //appMessageQueue from Neal
