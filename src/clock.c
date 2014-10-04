@@ -36,7 +36,7 @@ static void initialise_ui(void) {
   window_set_fullscreen(s_window, true);
 	
   Layer *window_layer = window_get_root_layer(s_window);
-  GRect bounds = layer_get_bounds(window_layer);
+  //GRect bounds = layer_get_bounds(window_layer);
 	
   c_appmessage_init();
   
@@ -106,6 +106,11 @@ static void handle_window_unload(Window* window) {
 	destroy_ui();
 }
 
+void foo(void* data) {
+	
+	c_player_action(ENDPOINT_PLAYERCREATE);
+}
+
 void show_clock(void) {
 	initialise_ui();
 	window_set_window_handlers(s_window, (WindowHandlers) {
@@ -122,9 +127,11 @@ void show_clock(void) {
 	
 	//Setup the SELECT button
 	window_set_click_config_provider(s_window, select_config_provider);
+
+	app_timer_register(1000, foo, NULL);
 	
 	//Register player
-	c_player_action(ENDPOINT_PLAYERCREATE);
+	
 }
 
 void hide_clock(void) {
@@ -137,8 +144,8 @@ static void c_in_received_handler(DictionaryIterator *iter, void *context) {
 	Tuple *index_tuple = dict_find(iter, KEY_INDEX);
 	Tuple *name_tuple = dict_find(iter, KEY_NAME);
 	Tuple *id_tuple = dict_find(iter, KEY_ID);
-	Tuple *spare_tuple = dict_find(iter, KEY_SPARE);
-	Tuple *error_tuple = dict_find(iter, KEY_ERROR);
+	//Tuple *spare_tuple = dict_find(iter, KEY_SPARE);
+	//Tuple *error_tuple = dict_find(iter, KEY_ERROR);
 
 	if (index_tuple && name_tuple && id_tuple) {
 		APP_LOG(APP_LOG_LEVEL_DEBUG, "received [%d] %s - %d", index_tuple->value->int16, name_tuple->value->cstring, id_tuple->value->int16);

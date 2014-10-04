@@ -107,7 +107,7 @@ function getItems(endpoint) {
 
 
 Pebble.addEventListener('ready', function(e) {
-   //console.log('JS Ready');
+   console.log('JS Ready');
 });
 
 Pebble.addEventListener('appmessage', function(e) {

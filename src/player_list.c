@@ -113,8 +113,8 @@ static void pl_in_received_handler(DictionaryIterator *iter, void *context) {
 	Tuple *index_tuple = dict_find(iter, KEY_INDEX);
 	Tuple *name_tuple = dict_find(iter, KEY_NAME);
 	Tuple *id_tuple = dict_find(iter, KEY_ID);
-	Tuple *spare_tuple = dict_find(iter, KEY_SPARE);
-	Tuple *error_tuple = dict_find(iter, KEY_ERROR);
+	//Tuple *spare_tuple = dict_find(iter, KEY_SPARE);
+	//Tuple *error_tuple = dict_find(iter, KEY_ERROR);
 
 	if (index_tuple && name_tuple && id_tuple) {
 		MenuItem menuitem;

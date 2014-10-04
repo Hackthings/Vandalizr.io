@@ -14,6 +14,7 @@ static void in_dropped_handler(AppMessageResult reason, void *context) {
 
 static void out_sent_handler(DictionaryIterator *sent, void *context) {
 	// outgoing message was delivered
+	APP_LOG(APP_LOG_LEVEL_DEBUG, "OUT SENT");	
 }
 
 static void out_failed_handler(DictionaryIterator *failed, AppMessageResult reason, void *context) {
@@ -37,7 +38,8 @@ void request_data(uint16_t endpoint) {
 	Tuplet endpoint_tuple = TupletInteger(KEY_ENDPOINT, endpoint);
 
 	DictionaryIterator *iter;
-	app_message_outbox_begin(&iter);
+	int ret = app_message_outbox_begin(&iter);
+	APP_LOG(APP_LOG_LEVEL_DEBUG, "request_data: RET %d", ret);	
 
 	if (iter == NULL) {
 		return;
@@ -46,5 +48,7 @@ void request_data(uint16_t endpoint) {
 	dict_write_tuplet(iter, &endpoint_tuple);
 	dict_write_end(iter);
 
-	app_message_outbox_send();
+	int ret2 = app_message_outbox_send(); 
+	APP_LOG(APP_LOG_LEVEL_DEBUG, "request_data: RET2 %d", ret2);	
+	
 }
