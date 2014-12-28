@@ -5,21 +5,44 @@
         "NETIMAGE_DATA": 1768777472,
         "NETIMAGE_END": 1768777474,
         "NETIMAGE_URL": 1768777476,
+        "action_id": 8,
         "endpoint": 0,
         "error": 5,
+        "game_id": 6,
         "id": 3,
         "index": 1,
         "name": 2,
-        "spare": 4
+        "spare": 4,
+        "victim_id": 7
     },
     "capabilities": [
         ""
     ],
     "companyName": "Orviwan",
-    "longName": "Vandalizr.io",
+    "longName": "Vandalizr for Pebble",
     "projectType": "native",
     "resources": {
         "media": [
+            {
+                "file": "images/arrow.png",
+                "name": "IMAGE_ARROW",
+                "type": "png"
+            },
+            {
+                "file": "images/scissors.png",
+                "name": "IMAGE_SCISSORS",
+                "type": "png"
+            },
+            {
+                "file": "images/paper.png",
+                "name": "IMAGE_PAPER",
+                "type": "png"
+            },
+            {
+                "file": "images/rock.png",
+                "name": "IMAGE_ROCK",
+                "type": "png"
+            },
             {
                 "file": "images/tiny-penis.png",
                 "name": "IMAGE_ATTACK_8",
@@ -57,13 +80,21 @@
             },
             {
                 "characterRegex": "[0-9:]",
+                "compatibility": "2.7",
                 "file": "fonts/monkey.ttf",
                 "name": "FONT_MONKEY_38",
+                "type": "font"
+            },
+            {
+                "characterRegex": "[0-9:A-Za-z.]",
+                "compatibility": "2.7",
+                "file": "fonts/monkey.ttf",
+                "name": "FONT_MONKEY_24",
                 "type": "font"
             }
         ]
     },
-    "shortName": "Vandalizr.io",
+    "shortName": "Vandalizr",
     "uuid": "4061ab50-93ec-4f3a-85f2-4bb1ca0ef36c",
     "versionCode": 1,
     "versionLabel": "1.0",

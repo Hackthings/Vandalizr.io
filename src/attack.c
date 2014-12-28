@@ -3,10 +3,14 @@
 #include "data.h"
 #include "appmessage.h"
 #include "attack.h"	
+#include "clock.h"
 
-// BEGIN AUTO-GENERATED UI CODE; DO NOT MODIFY
+static bool a_busy = true;
+	
 static Window *s_window;
 static MenuLayer *s_attack;
+
+static GBitmap *menu_icons[3];
 
 static void initialise_ui(void) {
   s_window = window_create();
@@ -23,8 +27,41 @@ static void destroy_ui(void) {
   window_destroy(s_window);
   menu_layer_destroy(s_attack);
 }
-// END AUTO-GENERATED UI CODE
 
+void create_gameaction_callback(DictionaryIterator *iter, void *context) {
+	
+
+	
+	//APP_LOG(APP_LOG_LEVEL_DEBUG, "al - create_gameaction_callback");
+	Tuple *index_tuple = dict_find(iter, KEY_INDEX);
+	Tuple *name_tuple = dict_find(iter, KEY_NAME);
+	Tuple *id_tuple = dict_find(iter, KEY_ID);
+
+	if (index_tuple && name_tuple && id_tuple) {		
+		//APP_LOG(APP_LOG_LEVEL_DEBUG, "received gameaction [%d] %s - %d", index_tuple->value->int16, name_tuple->value->cstring, id_tuple->value->int16);
+		
+		window_stack_pop_all(true);
+		show_clock();
+
+	}
+}
+
+void creategameaction(int16_t action) {
+
+	if(a_busy) {
+		return;
+	}	
+	a_busy = false;
+	
+	app_message_deregister_callbacks();
+	app_message_register_inbox_received(create_gameaction_callback);
+	appmessage_init();
+	
+	//APP_LOG(APP_LOG_LEVEL_DEBUG, "game_id: %s", gamedata->game_id);
+	
+	send_data(ENDPOINT_GAMEACTION, gamedata->game_id, gamedata->victim_id, action);
+	
+}
 
 
 static uint16_t a_menu_get_num_sections_callback(MenuLayer *menu_layer, void *data) {
@@ -48,24 +85,30 @@ static void a_menu_draw_header_callback(GContext* ctx, const Layer *cell_layer, 
 void a_menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuIndex *cell_index, void *data) {
 	switch(cell_index->row){
 		case 0:
-		   menu_cell_basic_draw(ctx, cell_layer, "ROCK", NULL, NULL);
+		   menu_cell_basic_draw(ctx, cell_layer, "ROCK", NULL, menu_icons[0]);
 		   break;
 		case 1:
-		   menu_cell_basic_draw(ctx, cell_layer, "PAPER", NULL, NULL);
+		   menu_cell_basic_draw(ctx, cell_layer, "PAPER", NULL, menu_icons[1]);
 		   break;
 		case 2:
-		   menu_cell_basic_draw(ctx, cell_layer, "SCISSORS", NULL, NULL);
+		   menu_cell_basic_draw(ctx, cell_layer, "SCISSORS", NULL, menu_icons[2]);
+			a_busy = false;
 		   break;
 	}	
 }
 
 // Here we capture when a user selects a menu item
 void a_menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
-
+		if(a_busy) {
+			return;
+		}
+	creategameaction(cell_index->row+1);
 }
 
-
 static void handle_window_unload(Window* window) {
+	gbitmap_destroy(menu_icons[0]);
+	gbitmap_destroy(menu_icons[1]);
+	gbitmap_destroy(menu_icons[2]);
   destroy_ui();
 }
 
@@ -82,9 +125,13 @@ void show_attack(void) {
 		.select_click = a_menu_select_callback,
 	});
 	
+  menu_icons[0] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_ROCK);
+  menu_icons[1] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_PAPER);
+  menu_icons[2] = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_SCISSORS);	
+	
 	window_set_window_handlers(s_window, (WindowHandlers) {
     .unload = handle_window_unload,
-});
+  });
   window_stack_push(s_window, true);
 }
 

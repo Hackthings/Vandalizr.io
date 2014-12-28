@@ -1,4 +1,4 @@
-function playerUsername() {
+function playerName() {
 	//TODO: Config setting
 	return '';
 }
@@ -12,17 +12,15 @@ var ENDPOINTS = {
 	PLAYERS: 0,
 	ATTACKS: 1,
 	PLAYERCREATE: 2,
-	PLAYERDELETE: 3
+	PLAYERDELETE: 3,
+	GAMECREATE: 4,
+	GAMEACTION: 5,
+	CHECKSTATUS: 6
 };
 
 var BASE_URL = 'http://www.mirz.com/vandalizr.io/?method=';
 
-var API_URLS = {
-	[ENDPOINTS.PLAYERS]: BASE_URL + 'playerList',
-	[ENDPOINTS.ATTACKS]: BASE_URL + 'attackList',
-	[ENDPOINTS.PLAYERCREATE]: BASE_URL + 'playerCreate',
-	[ENDPOINTS.PLAYERDELETE]: BASE_URL + 'playerDelete'
-};
+
 
 var TRANSFER_IN_PROGRESS = false;
 
@@ -58,7 +56,7 @@ var appMessageQueue = {
 				appMessageQueue.send();
 			};
 			if (this.numTries >= this.maxTries) {
-				console.log('Failed sending AppMessage: ' + JSON.stringify(this.nextMessage()));
+				//console.log('Failed sending AppMessage: ' + JSON.stringify(this.nextMessage()));
 				ack();
 			}
 			//console.log('Sending AppMessage: ' + JSON.stringify(this.nextMessage()));
@@ -67,39 +65,89 @@ var appMessageQueue = {
 	}
 };
 
+var API_URLS = {
+	[ENDPOINTS.PLAYERS]: BASE_URL + 'playerList',
+	[ENDPOINTS.ATTACKS]: BASE_URL + 'attackList',
+	[ENDPOINTS.PLAYERCREATE]: BASE_URL + 'playerCreate',
+	[ENDPOINTS.PLAYERDELETE]: BASE_URL + 'playerDelete',
+	[ENDPOINTS.GAMECREATE]: BASE_URL + 'gameCreate',
+	[ENDPOINTS.GAMEACTION]: BASE_URL + 'gameActionCreate',
+	[ENDPOINTS.CHECKSTATUS]: BASE_URL + 'gameStatus',
+};
 
-function getItems(endpoint) {
+function getItems(endpoint, data) {
 	var xhr = new XMLHttpRequest();
-	console.log('Endpoint: ' + API_URLS[endpoint] + '&id=' + Pebble.getAccountToken() + '&username=' + playerUsername());
-	xhr.open('GET', API_URLS[endpoint] + '&id=' + Pebble.getAccountToken() + '&username=' + playerUsername(), true);
+	var url;
+	switch(endpoint) {
+		case ENDPOINTS.PLAYERS:
+			url = API_URLS[endpoint] + '&playerid=' + Pebble.getAccountToken();
+			break;
+		case ENDPOINTS.ATTACKS:
+			url = API_URLS[endpoint];
+			break;
+		case ENDPOINTS.PLAYERCREATE:
+			url = API_URLS[endpoint] + '&playerid=' + Pebble.getAccountToken() + '&playername=' + playerName();
+			break;
+		case ENDPOINTS.PLAYERDELETE:
+			url = API_URLS[endpoint] + '&playerid=' + Pebble.getAccountToken();
+			break;
+		case ENDPOINTS.GAMECREATE:
+			url = API_URLS[endpoint] + '&attackerid=' + Pebble.getAccountToken() + '&victimid=' + data.payload.victim_id + '&game=1';
+			break;
+		case ENDPOINTS.GAMEACTION:
+			url = API_URLS[endpoint] + '&playerid=' + Pebble.getAccountToken()  + '&gameid=' + data.payload.game_id + '&action=' + data.payload.action_id;
+			break;
+		case ENDPOINTS.CHECKSTATUS:
+				var gameid;
+				if(data.payload.game_id) {
+					gameid = data.payload.game_id;
+				}
+				url = API_URLS[endpoint] + '&playerid=' + Pebble.getAccountToken()  + '&gameid=' + gameid;
+			break;
+	}
+	
+	xhr.open('GET', url, true);
 	xhr.timeout = 20000;
 	xhr.onload = function(e) {
 		if (xhr.readyState == 4) {
 			if (xhr.status == 200) {
 				if (xhr.responseText) {
 					var res = JSON.parse(xhr.responseText);
+					console.log('res: ' + JSON.stringify(res));
 					var items = res.items;
 					for(var index = 0; index < res.length; index++) {
-                        var id = decodeURIComponent(res[index].id);
+            var id = decodeURIComponent(res[index].id);
+						console.log('JS ID: ' + id + ' - JS name:' + name + ' - index: ' + index);
 						var name = decodeURIComponent(res[index].name);
+						
+						
+						if(endpoint == ENDPOINTS.CHECKSTATUS) {
+							
+							id = parseInt(id);
+							index = parseInt(index);
+							name = parseInt(name);
+							
+						}
+						
+
 						appMessageQueue.send({'endpoint': endpoint, 'index': index, 'id': id, 'name': name});
 					}
 				} else {
-					console.log('Invalid response received! ' + JSON.stringify(xhr));
+					//console.log('Invalid response received! ' + JSON.stringify(xhr));
 					appMessageQueue.send({'endpoint': endpoint, 'name': 'Invalid response!'});
 				}
 			} else {
-				console.log('Request returned error code ' + xhr.status.toString());
+				//console.log('Request returned error code ' + xhr.status.toString());
 				appMessageQueue.send({'endpoint': endpoint, 'name': 'HTTP/1.1 ' + xhr.statusText});
 			}
 		}
 	}
 	xhr.ontimeout = function() {
-		console.log('HTTP request timed out');
+		//console.log('HTTP request timed out');
 		appMessageQueue.send({'endpoint': endpoint, 'name': 'Request timed out!'});
 	};
 	xhr.onerror = function() {
-		console.log('HTTP request return error');
+		//console.log('HTTP request return error');
 		appMessageQueue.send({'endpoint': endpoint, 'name': 'Failed to connect!'});
 	};
 	xhr.send(null);
@@ -107,13 +155,13 @@ function getItems(endpoint) {
 
 
 Pebble.addEventListener('ready', function(e) {
-   console.log('JS Ready');
+   //console.log('JS Ready');
 });
 
 Pebble.addEventListener('appmessage', function(e) {
 	console.log('AppMessage received from Pebble: ' + JSON.stringify(e.payload));
 	if (typeof(e.payload.endpoint) != 'undefined') {
-		getItems(e.payload.endpoint);
+		getItems(e.payload.endpoint, e);
 		return;
 	} else {
 		appMessageQueue = [];

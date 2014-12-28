@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include "common.h"
 #include "clock.h"
 
 void handle_init(void) {
@@ -14,5 +15,3 @@ int main(void) {
   app_event_loop();
   handle_deinit();
 }
-
-

@@ -5,9 +5,13 @@
 #include "attack_list.h"
 #include "attack.h"
 	
+static bool al_menu_busy = true;
+
 // BEGIN AUTO-GENERATED UI CODE; DO NOT MODIFY
 static Window *s_window;
 static MenuLayer *s_attack_list;
+
+static char attackList[10][100];  //TODO: Fix hard coded amount of attacks
 
 static void initialise_ui(void) {
   s_window = window_create();
@@ -30,8 +34,7 @@ static void al_appmessage_init(void);
 static void al_in_received_handler(DictionaryIterator *iter, void *context);
 static void al_refresh_list(uint16_t endpoint);
 
-static MenuItem al_menuitems[20]; //const max items
-
+static MenuItem al_menuitems[20]; //TODO: const max items
 static int al_num_menuitems;
 static char al_error[24];
 
@@ -63,10 +66,48 @@ void al_menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuIndex
 	}
 }
 
+
+void create_game_callback(DictionaryIterator *iter, void *context) {
+	APP_LOG(APP_LOG_LEVEL_DEBUG, "al - create_game_callback");
+	Tuple *index_tuple = dict_find(iter, KEY_INDEX);
+	Tuple *name_tuple = dict_find(iter, KEY_NAME);
+	Tuple *id_tuple = dict_find(iter, KEY_ID);
+
+	if (index_tuple && name_tuple && id_tuple) {		
+		//APP_LOG(APP_LOG_LEVEL_DEBUG, "received game [%d] %s - %d", index_tuple->value->int16, name_tuple->value->cstring, id_tuple->value->int16);
+		strcpy(gamedata->game_id, name_tuple->value->cstring);
+		show_attack();
+	}
+}
+
+void creategame() {
+	//APP_LOG(APP_LOG_LEVEL_DEBUG, "Create Game");
+	if(al_menu_busy) {
+		return;
+	}
+	al_menu_busy = true;
+	app_message_deregister_callbacks();
+	app_message_register_inbox_received(create_game_callback);
+	appmessage_init();
+	
+	//APP_LOG(APP_LOG_LEVEL_DEBUG, "VICTIM ID: %s", gamedata->victim_id);
+	
+	send_data(ENDPOINT_GAMECREATE, "", gamedata->victim_id, 0);
+	
+}
+
+
 // Here we capture when a user selects a menu item
 void al_menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
-	gamedata->attack_id = (int)cell_index->row;	
-	show_attack();
+	if(al_menu_busy){
+		return;
+	}
+	
+	//APP_LOG(APP_LOG_LEVEL_DEBUG, "Selected Attack: %s", attackList[(int)cell_index->row]);	
+
+	strcpy(gamedata->attack_id, attackList[(int)cell_index->row]);
+	creategame();
+	
 }
 
 
@@ -109,17 +150,19 @@ void hide_attack_list(void) {
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - //
 
 static void al_in_received_handler(DictionaryIterator *iter, void *context) {
+	
+	al_menu_busy = true;
+	
 	//APP_LOG(APP_LOG_LEVEL_DEBUG, "al - al_in_received_handler");
 	Tuple *index_tuple = dict_find(iter, KEY_INDEX);
 	Tuple *name_tuple = dict_find(iter, KEY_NAME);
 	Tuple *id_tuple = dict_find(iter, KEY_ID);
-	Tuple *spare_tuple = dict_find(iter, KEY_SPARE);
-	Tuple *error_tuple = dict_find(iter, KEY_ERROR);
 
 	if (index_tuple && name_tuple && id_tuple) {
 		MenuItem menuitem;
 		menuitem.index = index_tuple->value->int16;
 		strncpy(menuitem.name, name_tuple->value->cstring, sizeof(menuitem.name));
+		strcpy(attackList[index_tuple->value->int16], id_tuple->value->cstring);
 		menuitem.id = id_tuple->value->int16;
 		al_menuitems[menuitem.index] = menuitem;
 		al_num_menuitems++;
@@ -130,6 +173,8 @@ static void al_in_received_handler(DictionaryIterator *iter, void *context) {
 		strncpy(al_error, name_tuple->value->cstring, sizeof(al_error));
 		menu_layer_reload_data_and_mark_dirty(s_attack_list);
 	}
+	
+	al_menu_busy = false;
 
 }
 
